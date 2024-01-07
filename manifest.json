@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Playbypoint - DUPR",
+  "version": "1.0",
+  "description": "DUPR lookups for Playbypoint",
+  "icons": {
+    "32": "img/favicon-32x32.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["img/favicon-32x32.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": ["https://playbycourt.com/programs/*"]
+    }
+  ],
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://api.dupr.gg/*"]
+}
