@@ -18,7 +18,7 @@
   "content_scripts": [
     {
       "js": ["content.js"],
-      "matches": ["https://playbycourt.com/programs/*"]
+      "matches": ["https://playbycourt.com/*"]
     }
   ],
   "permissions": ["activeTab", "storage"],

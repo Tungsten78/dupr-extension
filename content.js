@@ -1,4 +1,4 @@
-let apiKey, modal, observer;
+let apiKey, body, observer;
 
 async function attach() {
   const { accessKey, email } = await chrome.storage.local.get([
@@ -8,6 +8,8 @@ async function attach() {
   apiKey = accessKey;
 
   const header = document.querySelector(".item.header");
+  if (!header) return;
+
   let active = document.querySelector("#dupr-active");
   let logo = document.querySelector("#dupr-logo");
   if (!logo) {
@@ -21,12 +23,12 @@ async function attach() {
     header.appendChild(active);
   }
 
-  if (!modal) {
-    modal = document.querySelector("#modal-players");
-    if (!modal) return;
+  if (!body) {
+    body = document.body;
+    if (!body) return;
     observer = new MutationObserver((mutations) => {
       if (mutations.some((mutation) => mutation.type === "childList")) {
-        playerListVisible(observer, modal);
+        attachToPlayersList(observer, body);
       }
     });
   }
@@ -41,30 +43,36 @@ async function attach() {
   active.textContent = `(${email})`;
   active.style["background-color"] = "";
 
-  observer.observe(modal, { childList: true, subtree: true });
+  observer.observe(body, { childList: true, subtree: true });
 }
 
-async function playerListVisible(observer, modal) {
+async function attachToPlayersList(observer, element) {
   observer.disconnect();
 
   const targetRating = getTargetRating();
-  const header = modal.querySelector("#modal-roster-header-text");
-  const target = document.createElement("span");
+  const header = element.querySelector("#modal-roster-header-text");
 
-  target.textContent = `(Rating: ${targetRating.min} - ${targetRating.max})`;
-  header.appendChild(target);
+  if (header) {
+    const target = document.createElement("span");
+    target.textContent = `(Rating: ${targetRating.min} - ${targetRating.max})`;
+    header.appendChild(target);
+  }
 
   const promises = [];
-  modal.querySelectorAll(".FacilityItem > * > .pbc").forEach((p) => {
-    if (p.childNodes.length > 1) {
+  element
+    .querySelectorAll(".FacilityItem>.content>h1,.FacilityItem>.content>span")
+    .forEach((p) => {
+      if (p.querySelector("#dupr-rating")) return;
+
       const nameElement = p.childNodes[0];
       const ratingElement = p.childNodes[1];
       const player = {
-        name: trimName(nameElement.nodeValue),
+        name: trimName(nameElement.textContent),
         rating: parseFloat(ratingElement?.textContent.trim(), 10) ?? undefined,
       };
 
       const dupr = document.createElement("span");
+      dupr.id = "dupr-rating";
       dupr.classList.add("text", "small", "ml5");
       dupr.textContent = "(DUPR - loading...)";
       p.appendChild(dupr);
@@ -104,18 +112,19 @@ async function playerListVisible(observer, modal) {
           }
         })
       );
-    }
-  });
+    });
 
   await Promise.all(promises);
 
-  observer.observe(modal, { childList: true, subtree: true });
+  observer.observe(element, { childList: true, subtree: true });
 }
 
 function getTargetRating() {
   const propsText = document.querySelector(
     'div[data-react-class="ClinicStepperIndividualSesions"]'
-  ).attributes["data-react-props"].value;
+  )?.attributes["data-react-props"].value;
+
+  if (!propsText) return {};
 
   const props = JSON.parse(propsText);
 
@@ -125,7 +134,10 @@ function getTargetRating() {
   };
 }
 
+const duprCache = {};
 async function duprLookup(playerName) {
+  if (duprCache[playerName]) return duprCache[playerName];
+
   var headers = new Headers();
   headers.append("Content-Type", "application/json");
   headers.append("Authorization", `Bearer ${apiKey}`);
@@ -166,10 +178,12 @@ async function duprLookup(playerName) {
 
     console.log("DUPR", playerName, "found", name, rating);
 
-    return {
+    duprCache[playerName] = {
       name,
       rating,
     };
+
+    return duprCache[playerName];
   } else {
     console.log("DUPR", playerName, "not found");
   }
