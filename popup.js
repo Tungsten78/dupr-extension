@@ -36,6 +36,10 @@ async function initialize() {
 
   const creds = await chrome.storage.local.get(["email", "accessKey"]);
   setSignedIn(creds);
+
+  const response = await fetch(chrome.runtime.getURL("manifest.json"));
+  const data = await response.json();
+  document.getElementById("version").textContent = data.version;
 }
 
 async function login(email, password) {
