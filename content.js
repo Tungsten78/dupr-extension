@@ -1,13 +1,62 @@
 let apiKey, observer;
 
+playByCourt = {
+  url: "https://playbycourt.com/",
+  headerSelector: ".item.header",
+  rosterHeaderSelector: "#modal-roster-header-text>div",
+  rosterRowSelector: ".FacilityItem>.content>h1,.FacilityItem>.content>span",
+  getTargetRating() {
+    const propsText = document.querySelector(
+      'div[data-react-class="ClinicStepperIndividualSesions"]'
+    )?.attributes["data-react-props"].value;
+
+    if (!propsText) return {};
+
+    const props = JSON.parse(propsText);
+
+    return {
+      min: props.minRating,
+      max: props.maxRating,
+    };
+  },
+};
+
+courtReserve = {
+  url: "https://app.courtreserve.com/",
+  headerSelector: ".navbar_brand",
+  rosterHeaderSelector: "#EventDetailsTabStrip-registrants",
+  rosterRowSelector: "#EventDetailsTabStrip-registrants tbody>tr>th[scope=row]",
+  getTargetRating() {
+    const targets = document.querySelector(".restriction-value")?.textContent;
+    if (!targets) return {};
+
+    const targetValues = targets.split(", ").map(parseFloat);
+    const min = Math.min(...targetValues);
+    const max = Math.max(...targetValues);
+
+    return {
+      min,
+      max,
+    };
+  },
+};
+
+const sites = [playByCourt, courtReserve];
+const context = sites.find((site) => window.location.href.startsWith(site.url));
+
 async function attach() {
+  if (!context) {
+    console.log("Could not determine context for", window.location.href);
+    return;
+  }
+
   const { accessKey, email } = await chrome.storage.local.get([
     "accessKey",
     "email",
   ]);
   apiKey = accessKey;
 
-  const header = document.querySelector(".item.header");
+  const header = document.querySelector(context.headerSelector);
   if (!header) return;
 
   let active = document.querySelector("#dupr-active");
@@ -39,144 +88,73 @@ async function attach() {
 async function attachToPlayersList() {
   observer.disconnect();
 
-  const targetRating = getTargetRating();
-  const header = document.querySelector("#modal-roster-header-text");
+  const targetRating = context.getTargetRating();
+  const header = document.querySelector(context.rosterHeaderSelector);
 
-  if (header) {
+  if (header && targetRating && !document.querySelector("#dupr-target")) {
     const target = document.createElement("span");
+    target.id = "dupr-target";
     target.textContent = `(Rating: ${targetRating.min} - ${targetRating.max})`;
-    header.appendChild(target);
+    header.insertBefore(target, header.firstChild);
   }
 
   const promises = [];
-  document
-    .querySelectorAll(".FacilityItem>.content>h1,.FacilityItem>.content>span")
-    .forEach((p) => {
-      if (p.querySelector("#dupr-rating")) return;
+  document.querySelectorAll(context.rosterRowSelector).forEach((p) => {
+    if (p.querySelector("#dupr-rating")) return;
 
-      const nameElement = p.childNodes[0];
-      const ratingElement = p.childNodes[1];
-      const player = {
-        name: trimName(nameElement.textContent),
-        rating: parseFloat(ratingElement?.textContent.trim(), 10) ?? undefined,
-      };
+    const nameElement = p.childNodes[0];
+    const ratingElement = p.childNodes[1];
+    const player = {
+      name: trimName(nameElement.textContent),
+      rating: parseFloat(ratingElement?.textContent.trim(), 10) ?? undefined,
+    };
 
-      const dupr = document.createElement("span");
-      dupr.id = "dupr-rating";
-      dupr.classList.add("text", "small", "ml5");
-      dupr.textContent = "(DUPR - loading...)";
-      p.appendChild(dupr);
+    const dupr = document.createElement("span");
+    dupr.id = "dupr-rating";
+    dupr.classList.add("text", "small", "ml5");
+    dupr.textContent = "(DUPR - loading...)";
+    p.appendChild(dupr);
 
-      promises.push(
-        duprLookup(player.name).then(async (match) => {
-          const alert = "red";
-          if (!match) {
-            //no exact match, try shortening the name
-            const nameParts = player.name.split(" ");
-            const shortName = nameParts
-              .map((part, i) => {
-                if (i == 0) return part[0];
-                return part;
-              })
-              .join(" ");
-            match = await duprLookup(shortName);
-          }
-          if (match) {
-            if (match.name.toLowerCase() === player.name.toLowerCase()) {
-              dupr.textContent = `(DUPR: ${match.rating})`;
-            } else {
-              dupr.textContent = `(DUPR: [${match.name}] ${match.rating})`;
-              dupr.style.color = "orange";
-            }
-
-            if (
-              match.rating == "NR" ||
-              match.rating < targetRating.min ||
-              match.rating > targetRating.max
-            ) {
-              dupr.style.color = alert;
-            }
+    promises.push(
+      duprLookup(player.name).then(async (match) => {
+        const alert = "red";
+        if (!match) {
+          //no exact match, try shortening the name
+          const nameParts = player.name.split(" ");
+          const shortName = nameParts
+            .map((part, i) => {
+              if (i == 0) return part[0];
+              return part;
+            })
+            .join(" ");
+          match = await duprLookup(shortName);
+        }
+        if (match) {
+          if (match.name.toLowerCase() === player.name.toLowerCase()) {
+            dupr.textContent = `(DUPR: ${match.rating})`;
           } else {
-            dupr.textContent = "(DUPR: not found)";
+            dupr.textContent = `(DUPR: [${match.name}] ${match.rating})`;
+            dupr.style.color = "orange";
+          }
+
+          if (
+            match.rating == "NR" ||
+            match.rating < targetRating.min ||
+            match.rating > targetRating.max
+          ) {
             dupr.style.color = alert;
           }
-        })
-      );
-    });
+        } else {
+          dupr.textContent = "(DUPR: not found)";
+          dupr.style.color = alert;
+        }
+      })
+    );
+  });
 
   await Promise.all(promises);
 
   observer.observe(document.body, { childList: true, subtree: true });
-}
-
-function getTargetRating() {
-  const propsText = document.querySelector(
-    'div[data-react-class="ClinicStepperIndividualSesions"]'
-  )?.attributes["data-react-props"].value;
-
-  if (!propsText) return {};
-
-  const props = JSON.parse(propsText);
-
-  return {
-    min: props.minRating,
-    max: props.maxRating,
-  };
-}
-
-const duprCache = {};
-async function duprLookup(playerName) {
-  if (duprCache[playerName]) return duprCache[playerName];
-
-  var headers = new Headers();
-  headers.append("Content-Type", "application/json");
-  headers.append("Authorization", `Bearer ${apiKey}`);
-
-  var raw = JSON.stringify({
-    limit: 3,
-    offset: 0,
-    query: playerName,
-    exclude: [],
-    includeUnclaimedPlayers: false,
-    filter: {
-      lat: 53.4233228,
-      lng: -113.5939847,
-      radiusInMeters: 500000,
-      rating: {
-        maxRating: null,
-        minRating: null,
-      },
-      locationText: "",
-    },
-  });
-
-  var requestOptions = {
-    method: "POST",
-    headers,
-    body: raw,
-    redirect: "follow",
-  };
-
-  const response = await fetch(
-    "https://api.dupr.gg/player/v1.0/search",
-    requestOptions
-  );
-  const data = await response.json();
-  if (data.status == "SUCCESS" && data.result.hits.length > 0) {
-    const name = trimName(data.result.hits[0].fullName);
-    const rating = data.result.hits[0].ratings.doubles;
-
-    console.log("DUPR", playerName, "found", name, rating);
-
-    duprCache[playerName] = {
-      name,
-      rating,
-    };
-
-    return duprCache[playerName];
-  } else {
-    console.log("DUPR", playerName, "not found");
-  }
 }
 
 function trimName(name) {
@@ -198,3 +176,5 @@ chrome.storage.onChanged.addListener(async ({ accessKey }, namespace) => {
   if (namespace != "local") return;
   if (accessKey) attach();
 });
+
+attach();
