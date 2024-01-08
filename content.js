@@ -1,4 +1,4 @@
-let apiKey, body, observer;
+let apiKey, observer;
 
 async function attach() {
   const { accessKey, email } = await chrome.storage.local.get([
@@ -23,16 +23,6 @@ async function attach() {
     header.appendChild(active);
   }
 
-  if (!body) {
-    body = document.body;
-    if (!body) return;
-    observer = new MutationObserver((mutations) => {
-      if (mutations.some((mutation) => mutation.type === "childList")) {
-        attachToPlayersList(observer, body);
-      }
-    });
-  }
-
   if (!apiKey) {
     observer.disconnect();
     active.textContent = "(not signed in)";
@@ -43,14 +33,14 @@ async function attach() {
   active.textContent = `(${email})`;
   active.style["background-color"] = "";
 
-  observer.observe(body, { childList: true, subtree: true });
+  attachToPlayersList();
 }
 
-async function attachToPlayersList(observer, element) {
+async function attachToPlayersList() {
   observer.disconnect();
 
   const targetRating = getTargetRating();
-  const header = element.querySelector("#modal-roster-header-text");
+  const header = document.querySelector("#modal-roster-header-text");
 
   if (header) {
     const target = document.createElement("span");
@@ -59,7 +49,7 @@ async function attachToPlayersList(observer, element) {
   }
 
   const promises = [];
-  element
+  document
     .querySelectorAll(".FacilityItem>.content>h1,.FacilityItem>.content>span")
     .forEach((p) => {
       if (p.querySelector("#dupr-rating")) return;
@@ -116,7 +106,7 @@ async function attachToPlayersList(observer, element) {
 
   await Promise.all(promises);
 
-  observer.observe(element, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 function getTargetRating() {
@@ -197,9 +187,12 @@ function trimName(name) {
     .trim();
 }
 
-(async function () {
-  await attach();
-})();
+observer = new MutationObserver((mutations) => {
+  if (mutations.some((mutation) => mutation.type === "childList")) {
+    attach();
+  }
+});
+observer.observe(document.body, { childList: true, subtree: true });
 
 chrome.storage.onChanged.addListener(async ({ accessKey }, namespace) => {
   if (namespace != "local") return;
