@@ -1,0 +1,38 @@
+.ui.modal.fullscreen_on_mobile {
+    max-height: calc(100vh) !important;
+    min-height: calc(100vh) !important;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    border-radius: 0 !important
+}
+
+.ui.modal.fullscreen_on_mobile>.ui.header {
+    height: 47px
+}
+
+.ui.modal.fullscreen_on_mobile .content {
+    max-height: calc(100vh - 47px) !important
+}
+
+.ui.modal.fullscreen_on_mobile.without_header>.ui.header {
+    height: 0
+}
+
+.ui.modal.fullscreen_on_mobile.without_header .content {
+    max-height: calc(100vh) !important
+}
+
+.ui.modal.fullscreen_on_mobile.with_modal_default_footer .content {
+    max-height: calc(100vh - 100px) !important
+}
+
+.ui.modal.fullscreen_on_mobile.with_modal_default_footer .footer.actions {
+    height: 100px;
+    position: fixed;
+    width: 100%;
+    bottom: 0
+}

@@ -18,6 +18,7 @@
   "content_scripts": [
     {
       "js": ["content.js"],
+      "css": ["content.css"],
       "matches": ["https://playbycourt.com/*"]
     }
   ],
