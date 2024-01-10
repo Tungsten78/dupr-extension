@@ -109,11 +109,15 @@ async function attachToPlayersList() {
       rating: parseFloat(ratingElement?.textContent.trim(), 10) ?? undefined,
     };
 
+    const duprHyperlink = document.createElement("a");
+    duprHyperlink.classList.add("dupr-link");
+    p.appendChild(duprHyperlink);
+
     const dupr = document.createElement("span");
     dupr.id = "dupr-rating";
     dupr.classList.add("text", "small", "ml5");
     dupr.textContent = "(DUPR - loading...)";
-    p.appendChild(dupr);
+    duprHyperlink.appendChild(dupr);
 
     promises.push(
       duprLookup(player.name).then(async (match) => {
@@ -130,6 +134,10 @@ async function attachToPlayersList() {
           match = await duprLookup(shortName);
         }
         if (match) {
+          duprHyperlink.classList.add("active");
+          duprHyperlink.target = "_blank";
+          duprHyperlink.href = match.href;
+
           if (match.name.toLowerCase() === player.name.toLowerCase()) {
             dupr.textContent = `(DUPR: ${match.rating})`;
           } else {

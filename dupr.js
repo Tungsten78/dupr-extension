@@ -38,14 +38,17 @@ async function duprLookup(playerName) {
   );
   const data = await response.json();
   if (data.status == "SUCCESS" && data.result.hits.length > 0) {
+    const id = data.result.hits[0].id;
     const name = trimName(data.result.hits[0].fullName);
     const rating = data.result.hits[0].ratings.doubles;
 
     console.log("DUPR", playerName, "found", name, rating);
 
     duprCache[playerName] = {
+      id,
       name,
       rating,
+      href: `https://mydupr.com/dashboard/player/${id}`,
     };
 
     return duprCache[playerName];

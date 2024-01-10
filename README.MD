@@ -1,5 +1,9 @@
 # Release Notes
 
+1.1.1 - 2024-01-10
+---
+- Add dupr player hyperlink
+
 1.1.0 - 2024-01-08
 ---
 - Add support for courtreserve.com
