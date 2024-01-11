@@ -1,5 +1,9 @@
 # Release Notes
 
+1.1.2 - 2024-01-11
+---
+- Bug fixes
+
 1.1.1 - 2024-01-10
 ---
 - Add dupr player hyperlink
