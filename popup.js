@@ -20,7 +20,7 @@ async function signOut() {
 }
 
 function setSignedIn(creds) {
-  if (creds) {
+  if (creds.accessKey) {
     signInDiv.style.display = "none";
     signOutDiv.style.display = "block";
     document.querySelector("#user-name").textContent = creds.email;
