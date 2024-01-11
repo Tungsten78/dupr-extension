@@ -4,7 +4,8 @@ playByCourt = {
   url: "https://playbycourt.com/",
   headerSelector: ".item.header",
   rosterHeaderSelector: "#modal-roster-header-text>div",
-  rosterRowSelector: ".FacilityItem>.content>h1,.FacilityItem>.content>span",
+  rosterRowSelector:
+    ".FacilityItem:not(.ReservationGame)>.content>h1,.FacilityItem>.content>span",
   getTargetRating() {
     const propsText = document.querySelector(
       'div[data-react-class="ClinicStepperIndividualSesions"]'
