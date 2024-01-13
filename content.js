@@ -25,15 +25,15 @@ playByCourt = {
   },
 };
 
-// playByPointAdmin = {
-//   urls: [/^https:\/\/.*\.playbypoint\.com\/admin\/.*$/],
-//   headerSelector: "",
-//   rosterHeaderSelector: "",
-//   rosterRowSelector: "",
-//   getTargetRating() {
-//     return {};
-//   },
-// };
+playByPointAdmin = {
+  urls: [/^https:\/\/.*\.playbypoint\.com\/admin\/.*$/],
+  headerSelector: ".desktop_logo",
+  rosterHeaderSelector: "no-waldo",
+  rosterRowSelector: ".AdminClinicsAttendance .text.semi.bold.big",
+  getTargetRating() {
+    return {};
+  },
+};
 
 courtReserve = {
   urls: [/^https:\/\/app\.courtreserve\.com\//],
@@ -56,7 +56,7 @@ courtReserve = {
   },
 };
 
-const sites = [playByCourt, courtReserve];
+const sites = [playByCourt, playByPointAdmin, courtReserve];
 const context = sites.find((site) =>
   site.urls.some((r) => r.test(window.location.href))
 );
