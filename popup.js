@@ -3,7 +3,11 @@ async function signIn() {
     document.querySelector("#email").value,
     document.querySelector("#password").value
   );
-  if (result) {
+
+  const errorLabel = document.querySelector("#error-message");
+  errorLabel.textContent = result.error ?? "";
+
+  if (result.accessToken) {
     const creds = {
       email: result.user.email,
       accessKey: result.accessToken,
@@ -54,7 +58,10 @@ async function login(email, password) {
   if (json.status == "SUCCESS") {
     return json.result;
   } else {
-    console.console.warn(json);
+    console.warn(json);
+    return {
+      error: json.message ?? Object.values(json.errors).join(", "),
+    };
   }
 }
 

@@ -3,14 +3,36 @@
   <head>
     <meta charset="utf-8" />
     <title>DUPR</title>
+    <style>
+      .container {
+        width: 225px;
+        height: 75px;
+      }
+      .title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+      .integrations {
+        margin-bottom: 1rem;
+      }
+      input {
+        width: 80%;
+        margin-bottom: 0.5rem;
+      }
+      #version {
+        float: right;
+      }
+      #error-message {
+        color: red;
+      }
+    </style>
   </head>
   <body>
     <img src="./img/favicon-32x32.png" />
-    <div style="width: 225px; height: 75px">
-      <div style="font-weight: 700; margin-bottom: 1rem">
-        Adds DUPR ratings to facility rosters
-      </div>
-      <div style="margin-bottom: 1rem">
+    <div class="container">
+      <div class="title">Adds DUPR ratings to facility rosters</div>
+      <div class="integrations">
         Integrated with:
         <li>
           <a href="https://app.playbypoint.com/" target="_blank"
@@ -27,12 +49,13 @@
         <input type="text" id="email" placeholder="Email" />
         <input type="password" id="password" placeholder="Password" />
         <button id="signIn">Sign in</button>
+        <div id="error-message"></div>
       </div>
       <div id="sign-out">
         <span id="user-name"></span>
         <button id="signOut">Sign out</button>
       </div>
-      <span id="version" style="float: right"></span>
+      <span id="version"></span>
     </div>
     <script src="popup.js"></script>
   </body>

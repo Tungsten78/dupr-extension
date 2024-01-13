@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "DUPRific",
   "version": "1.2.0",
-  "description": "Add DUPR lookups to your pickleball booking app",
+  "description": "Add DUPR lookups to your pickleball booking apps",
   "icons": {
     "32": "img/favicon-32x32.png"
   },

@@ -25,15 +25,15 @@ playByCourt = {
   },
 };
 
-playByPointAdmin = {
-  urls: [/^https:\/\/.*\.playbypoint\.com\/admin\/.*$/],
-  headerSelector: "",
-  rosterHeaderSelector: "",
-  rosterRowSelector: "",
-  getTargetRating() {
-    return {};
-  },
-};
+// playByPointAdmin = {
+//   urls: [/^https:\/\/.*\.playbypoint\.com\/admin\/.*$/],
+//   headerSelector: "",
+//   rosterHeaderSelector: "",
+//   rosterRowSelector: "",
+//   getTargetRating() {
+//     return {};
+//   },
+// };
 
 courtReserve = {
   urls: [/^https:\/\/app\.courtreserve\.com\//],
@@ -56,7 +56,7 @@ courtReserve = {
   },
 };
 
-const sites = [playByCourt, playByPointAdmin, courtReserve];
+const sites = [playByCourt, courtReserve];
 const context = sites.find((site) =>
   site.urls.some((r) => r.test(window.location.href))
 );

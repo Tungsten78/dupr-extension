@@ -1,5 +1,11 @@
 # Release Notes
 
+1.2.0 - 2024-01-12
+---
+- improved roster matches for courtreserve
+- support for playbypoint white labelled domains
+- login error feedback
+
 1.1.2 - 2024-01-11
 ---
 - Bug fixes
