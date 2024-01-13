@@ -1,7 +1,10 @@
 let apiKey, observer;
 
 playByCourt = {
-  url: "https://playbycourt.com/",
+  urls: [
+    /^https:\/\/playbycourt\.com\//,
+    /^https:\/\/.*\.playbypoint\.com\/(?!admin).*$/,
+  ],
   headerSelector: ".item.header",
   rosterHeaderSelector: "#modal-roster-header-text>div",
   rosterRowSelector:
@@ -22,11 +25,22 @@ playByCourt = {
   },
 };
 
+playByPointAdmin = {
+  urls: [/^https:\/\/.*\.playbypoint\.com\/admin\/.*$/],
+  headerSelector: "",
+  rosterHeaderSelector: "",
+  rosterRowSelector: "",
+  getTargetRating() {
+    return {};
+  },
+};
+
 courtReserve = {
-  url: "https://app.courtreserve.com/",
+  urls: [/^https:\/\/app\.courtreserve\.com\//],
   headerSelector: ".navbar_brand",
   rosterHeaderSelector: "#EventDetailsTabStrip-registrants",
-  rosterRowSelector: "#EventDetailsTabStrip-registrants tbody>tr>th[scope=row]",
+  rosterRowSelector:
+    "#EventDetailsTabStrip-registrants tbody>tr>th[scope=row],#EventDetailsTabStrip-registration tbody>tr>th[scope=row]",
   getTargetRating() {
     const targets = document.querySelector(".restriction-value")?.textContent;
     if (!targets) return {};
@@ -42,8 +56,10 @@ courtReserve = {
   },
 };
 
-const sites = [playByCourt, courtReserve];
-const context = sites.find((site) => window.location.href.startsWith(site.url));
+const sites = [playByCourt, playByPointAdmin, courtReserve];
+const context = sites.find((site) =>
+  site.urls.some((r) => r.test(window.location.href))
+);
 
 async function attach() {
   if (!context) {
